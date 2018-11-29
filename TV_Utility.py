@@ -12,6 +12,11 @@ def split_words(sent, language = 'vi'):
 
     return nltk.tokenize.word_tokenize(sent)
 
+# Remove hyperlink
+def remove_hyperlinks(sent):
+    sent = re.sub(r'(http|ftp|https)://([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?', '', sent, flags=re.MULTILINE)
+    return sent
+
 # remove html tag
 def clean_html(raw_html):
   cleanr = re.compile('<.*?>')
@@ -20,7 +25,7 @@ def clean_html(raw_html):
 
 # Read list of stop words from the pre-define file
 def read_stopwords(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding="utf-8") as f:
         stopwords = set([w.strip().replace(' ', '_') for w in f.readlines()])
     return stopwords
 
@@ -44,8 +49,12 @@ def stem_words(words):
 
 # Input: sents: list of sentences
 # Output: list of preprocessed sentences
-def pre_process_sentence(sents, language = 'vi'):
+def pre_process_sentence(sents, language = 'vi', is_remove_stopword=True, is_remove_hyperlink=True):
     for i in range(len(sents)):
+        # remove hyperlink
+        if is_remove_hyperlink:
+            sents[i]    = remove_hyperlinks(sents[i])
+
         # remove html tag
         sents[i] = clean_html(sents[i])
 
@@ -56,7 +65,8 @@ def pre_process_sentence(sents, language = 'vi'):
         words = split_words(sents[i])
 
         #remove stop words
-        words = remove_stopwords(words)
+        if remove_stopwords:
+            words = remove_stopwords(words)
 
         # stem words
         if language != 'vi':
@@ -67,6 +77,5 @@ def pre_process_sentence(sents, language = 'vi'):
     return sents
 
 if __name__ == '__main__':
-
-    print(pre_process_sentence(['works working '],language = 'en'))
+    print(pre_process_sentence(['works working https://www.dailymail.co.uk/home/index.html something'],language = 'en'))
 
