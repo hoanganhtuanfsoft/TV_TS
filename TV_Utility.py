@@ -2,6 +2,7 @@ import string
 import nltk
 import re
 from pyvi import ViTokenizer
+import string
 
 import TV_Config
 
@@ -49,7 +50,7 @@ def stem_words(words):
 
 # Input: sents: list of sentences
 # Output: list of preprocessed sentences
-def pre_process_sentence(sents, language = 'vi', is_remove_stopword=True, is_remove_hyperlink=True):
+def pre_process_sentence(sents, language = 'vi', is_remove_stopword=True, is_remove_hyperlink=True, is_remove_punctuation=True, is_remove_digit=True):
     for i in range(len(sents)):
         # remove hyperlink
         if is_remove_hyperlink:
@@ -57,6 +58,9 @@ def pre_process_sentence(sents, language = 'vi', is_remove_stopword=True, is_rem
 
         # remove html tag
         sents[i] = clean_html(sents[i])
+        # remove punctuation
+        if is_remove_punctuation:
+            sents[i] = ''.join([ch for ch in sents[i] if ch not in string.punctuation and ch != '–'])
 
         # change to lower case
         sents[i] = sents[i].lower()
@@ -65,17 +69,19 @@ def pre_process_sentence(sents, language = 'vi', is_remove_stopword=True, is_rem
         words = split_words(sents[i])
 
         #remove stop words
-        if remove_stopwords:
+        if is_remove_stopword:
             words = remove_stopwords(words)
-
         # stem words
         if language != 'vi':
             words = stem_words(words)
-
         sents[i] = ' '.join(words)
+
+        # remove digits
+        if is_remove_digit:
+            sents[i] = ' '.join([token for token in sents[i].split() if not token.isdigit()])
 
     return sents
 
 if __name__ == '__main__':
-    print(pre_process_sentence(['works working https://www.dailymail.co.uk/home/index.html something'],language = 'en'))
+    print(pre_process_sentence(['works iphone5s working https://www.dailymail.co.uk/home/index.html 65  == ?something 65'],language = 'vi'))
 
